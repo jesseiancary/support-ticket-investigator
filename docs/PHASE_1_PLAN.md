@@ -61,8 +61,8 @@ developed through the same disciplined, test-first loop.
 - [ ] Add Vitest at the root with workspace projects
 - [ ] **Test-first:** write `packages/shared/src/health.test.ts` asserting a trivial `health()` returns `"ok"` (red)
 - [ ] Implement `health()` to make it pass (green)
-- [ ] Author `docker-compose.yml`: `db` (`pgvector/pgvector:pg16`), `api`, `web` services with volumes + a shared network
-- [ ] Add multi-stage `Dockerfile` for `api` and `web` (deps → build → runtime)
+- [ ] Author `docker-compose.yml`: `db` (`pgvector/pgvector:pg16`), `api`, `web` services with volumes + a shared network. The `web` service here is a **placeholder health-server container** (dev infra so the full stack boots), **not** the React app — that replaces it in Phase 5 (PR 5.1)
+- [ ] Add multi-stage `Dockerfile` for `api` and `web` (deps → build → runtime). The `web` Dockerfile ships a minimal placeholder now; Phase 5 converts it to a Vite build. This is infrastructure scaffolding, consistent with the "no product features" rule
 - [ ] Add a `Makefile` with `up`, `down`, `test`, `lint`, `typecheck`, `logs` targets
 - [ ] Add `.env.example` documenting `OPENAI_API_KEY`, `DATABASE_URL`, ports
 
@@ -81,13 +81,16 @@ developed through the same disciplined, test-first loop.
 - [ ] Document the "tests-first, always" rule and the PR conventions in `CLAUDE.md`
 - [ ] Document the **git ground rule** in `CLAUDE.md`: Claude never creates branches, stages, commits, or pushes — the human owns all git operations; `/pr` only emits copy-paste PR text
 - [ ] Document the **project scope** in `CLAUDE.md`: portfolio piece (not production), ~1-week budget, "polished and good, not perfect," and that seed/sample data + a public demo are how hiring managers evaluate it
-- [ ] Create `.claude/settings.json` with a permission allowlist for routine **read-only** commands (`pnpm *`, `docker compose *`, `make *`, `drizzle-kit generate`/`migrate`, read-only git: `git status`/`diff`/`log`)
-- [ ] Explicitly **do not** allowlist `git add`/`commit`/`branch`/`push` — these stay human-owned
+- [ ] Create `.claude/settings.json` with a permission allowlist, honestly categorized (the allowlist is about *what is safe to auto-approve in a dev loop*, not about being side-effect-free):
+  - [ ] **Truly read-only** (no state change): `git status` / `git diff` / `git log`
+  - [ ] **State-changing but safe local-dev commands** (intentionally allowlisted for flow — these *do* mutate local/dev state such as the DB, containers, and schema; that is acceptable and is not "read-only"): `pnpm *`, `docker compose *`, `make *`, `drizzle-kit generate` / `drizzle-kit migrate`
+- [ ] Explicitly **do not** allowlist `git add`/`commit`/`branch`/`push` — these stay human-owned (the real safety boundary; git history is never written by Claude)
 - [ ] Set project env defaults in settings (non-secret only)
 
 **Acceptance criteria**
 - [ ] `CLAUDE.md` describes the full dev loop, the git ground rule, and the project scope
-- [ ] Routine `pnpm`/`docker`/`make` commands run without permission prompts
+- [ ] The allowlist is documented by category (truly read-only vs. safe-but-state-changing); nothing is mislabeled as "read-only" that actually mutates state
+- [ ] Routine `pnpm`/`docker`/`make`/`drizzle-kit` commands run without permission prompts
 - [ ] No secrets are committed in `settings.json`
 - [ ] No git write operations (`add`/`commit`/`branch`/`push`) are allowlisted
 
@@ -179,16 +182,20 @@ developed through the same disciplined, test-first loop.
 ### PR 1.7 — CI foundation (GitHub Actions)
 
 **Objective:** Establish the base CI pipeline that gates every PR from here forward.
-**Gate scope:** only code that exists *now* — no DB/integration/web gates yet.
+**Gate scope:** only code that exists *now*. Lint/typecheck/build run **workspace-wide
+and cover all three existing packages — `shared`, `api`, and `web`** (the `web`
+package, a placeholder, exists as of PR 1.1, so it is gated from the start). Deferred
+until their code lands: web *component tests* and *E2E* (Phase 5), DB/integration
+(Phase 2), and LLM (Phase 4).
 
 - [ ] Add `.github/workflows/ci.yml` triggered on `push` and `pull_request`
 - [ ] Setup steps: checkout → Node 22 + pnpm via corepack → cache pnpm store → `pnpm install --frozen-lockfile`
-- [ ] **Gate:** lint (`pnpm lint`)
-- [ ] **Gate:** typecheck (`pnpm typecheck`)
+- [ ] **Gate:** lint (`pnpm lint`) — workspace-wide (`shared`, `api`, `web`)
+- [ ] **Gate:** typecheck (`pnpm typecheck`) — workspace-wide (`shared`, `api`, `web`)
 - [ ] **Gate:** unit tests (`pnpm test`) — the smoke/unit suite that exists today
-- [ ] **Gate:** build (`pnpm build`) for the packages that currently exist (`shared`, `api`)
+- [ ] **Gate:** build (`pnpm build`) — workspace-wide; all three packages (`shared`, `api`, `web`) exist as of Phase 1, so `web` is built/gated now rather than deferred
 - [ ] Add a CI status badge placeholder to `CLAUDE.md`/README (finalized in Phase 6)
-- [ ] **Gate-scope note (document in-workflow):** no Docker/integration gate here — the DB and integration tests don't exist yet; that gate lands in Phase 2 exactly when the code it protects does
+- [ ] **Gate-scope note (document in-workflow):** no Docker/integration gate here — the DB and integration tests don't exist yet (lands in Phase 2); no web *component/E2E* gate yet either — those tests arrive in Phase 5. Each gate lands exactly when the code it protects does
 
 **Acceptance criteria**
 - [ ] CI runs on every PR and blocks merge on lint/type/test/build failure
@@ -200,7 +207,7 @@ developed through the same disciplined, test-first loop.
 ## Definition of Done (Phase 1)
 
 - [ ] `make up && make test` is green on a fresh clone
-- [ ] GitHub Actions CI gates lint, typecheck, unit tests, and build on every PR (base pipeline only)
+- [ ] GitHub Actions CI gates lint, typecheck, unit tests, and build on every PR — lint/typecheck/build run workspace-wide across `shared`/`api`/`web` (base pipeline only)
 - [ ] `.claude/` contains settings, ≥7 commands (including `/pr-reviewer` and `/pr`), ≥4 agents, ≥4 skills, and TDD hooks
 - [ ] `/pr-reviewer` reports severity-grouped findings and makes no edits; `/pr` auto-fixes Critical/High/Medium, prompts on Low, and emits copy-paste PR text — without creating a branch, staging, or committing
 - [ ] `CLAUDE.md` documents the architecture, TDD loop, the git ground rule (no Claude branches/commits), and the project scope

@@ -27,7 +27,7 @@ React Testing Library (components), Playwright (one E2E happy path).
 - [ ] Scaffold Vite + React + TS + Tailwind in `packages/web`
 - [ ] Build a typed API client whose request/response types come from `packages/shared` Zod schemas (parse/validate responses)
 - [ ] Set up TanStack Query provider + base layout/navigation
-- [ ] Add the `web` multi-stage Dockerfile and wire it into `docker-compose.yml` (dev proxy to `api`)
+- [ ] **Replace the Phase 1 placeholder `web` container with the real Vite build:** update the existing `web` multi-stage Dockerfile and its `docker-compose.yml` service (the placeholder health-server is swapped out here, not created) — dev proxy to `api`
 
 **Acceptance criteria**
 - [ ] `make up` serves the web app; it reaches the API in the compose network
@@ -101,19 +101,22 @@ React Testing Library (components), Playwright (one E2E happy path).
 
 ---
 
-### PR 5.6 — CI gates: web package + E2E
+### PR 5.6 — CI gates: web component tests + E2E
 
-**Objective:** Extend CI to cover the new `web` package and the Playwright happy
-path. **These gates land now because the frontend first exists in this phase.**
+**Objective:** Extend CI with the gates that only now have something to run: the web
+**component tests (RTL)** and the Playwright **E2E** happy path. **`web` lint,
+typecheck, and build already gate the package workspace-wide since Phase 1 (PR 1.7) —
+those are not re-added here; this phase adds only the test gates, because the web
+tests first exist now.**
 
-- [ ] Add web gates to `ci.yml`: `web` lint, typecheck, component tests (RTL), and `web` build
+- [ ] Add the web **component-test** gate to `ci.yml`: run `web` RTL component tests (lint/typecheck/build are already workspace-wide gates from Phase 1 — do not duplicate them)
 - [ ] Add a Playwright E2E job: cache + install browsers, run the happy-path spec against the compose stack or a mocked API
 - [ ] Upload Playwright traces/screenshots as artifacts on failure
-- [ ] Blocking policy: web lint/typecheck/component tests/build **block**; the E2E happy path **blocks** (allow a bounded flaky-retry)
-- [ ] **Gate-scope note (document in-workflow):** web + E2E gates intentionally absent before this phase — there was no frontend to protect
+- [ ] Blocking policy: web component tests **block**; the E2E happy path **blocks** (allow a bounded flaky-retry). (web lint/typecheck/build already block via the Phase 1 gates.)
+- [ ] **Gate-scope note (document in-workflow):** web **component + E2E** gates were intentionally absent before this phase — there were no web tests to run yet (web lint/typecheck/build have gated the placeholder package since Phase 1)
 
 **Acceptance criteria**
-- [ ] CI runs web lint/typecheck/test/build on every PR
+- [ ] CI runs web component tests on every PR (web lint/typecheck/build already covered since Phase 1)
 - [ ] The Playwright happy path runs in CI and blocks on failure
 - [ ] Failure artifacts (traces/screenshots) are retained for debugging
 
@@ -125,4 +128,4 @@ path. **These gates land now because the frontend first exists in this phase.**
 - [ ] The retrieval inspector clearly exposes source / content / score / rank
 - [ ] Citations link evidence to the exact retrieved chunk
 - [ ] Frontend types are derived from shared Zod schemas (no drift from the API)
-- [ ] CI now gates the web package (lint/typecheck/test/build) and the Playwright E2E happy path
+- [ ] CI now gates the web component tests (RTL) and the Playwright E2E happy path (web lint/typecheck/build have been gated workspace-wide since Phase 1)
