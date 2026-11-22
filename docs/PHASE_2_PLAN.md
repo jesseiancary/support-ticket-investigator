@@ -43,6 +43,7 @@ created_at            token_count
 - [ ] **Test-first:** write a Testcontainers integration test that boots `pgvector/pgvector:pg16`, runs migrations, and asserts both tables + the `vector` column exist (red)
 - [ ] Enable the `vector` extension in the first migration
 - [ ] Define Drizzle schema for `documents` and `chunks` (embedding `vector(1536)`, metadata `jsonb`, `source_type` enum)
+- [ ] Add a **unique constraint on `documents.uri/path`** — the stable identity key that ingestion upserts against (so changed content updates in place rather than inserting a duplicate; see PR 2.5)
 - [ ] Add an index strategy note (IVFFlat/HNSW) — create the vector index in a migration
 - [ ] Wire `drizzle-kit` generate/apply into the `/migrate` command and `Makefile`
 
@@ -113,14 +114,14 @@ created_at            token_count
 
 - [ ] **Test-first:** integration test ingesting a small fixture corpus and asserting rows in `documents`/`chunks` with non-null embeddings (red)
 - [ ] Implement the orchestrator pipeline tying PRs 2.2–2.4 to the DB
-- [ ] Make ingestion idempotent via `raw_hash` (re-ingest updates, doesn't duplicate)
+- [ ] Make ingestion idempotent keyed on the stable `uri/path` identity (not the content hash): compute the source `raw_hash`; if a document with that `uri/path` exists and its `raw_hash` is unchanged, skip (no-op); if the content changed, update the document row and **replace its chunks** (delete old chunks, then re-chunk + re-embed) so nothing is duplicated or orphaned
 - [ ] Add a CLI entry (`pnpm ingest <path>`) wired into the Makefile
 - [ ] Create a `seed/` corpus: sample technical docs, resolved tickets, troubleshooting guides, and incident logs (including a payment-timeout example matching the project's demo ticket)
 - [ ] Add `pnpm seed` to load the corpus into the dev DB
 
 **Acceptance criteria**
 - [ ] `pnpm seed` populates the DB and the integration test passes
-- [ ] Re-running ingestion does not create duplicate chunks
+- [ ] Re-ingesting unchanged content is a no-op; re-ingesting changed content updates the document and replaces its chunks (no duplicate rows, no orphaned chunks)
 - [ ] The seed corpus is rich enough to make Phase 3/4 demos meaningful
 
 ---

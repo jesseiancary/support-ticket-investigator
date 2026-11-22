@@ -113,23 +113,43 @@ Every `evidence.citation` **must** reference a chunk that was actually retrieved
 
 ---
 
-### PR 4.6 — Follow-up Q&A
+### PR 4.6 — Investigation persistence schema & migration
+
+**Objective:** Add the storage that follow-up Q&A reuses: persist each investigation
+and its conversation turns. **The only prior schema (Phase 2) defines `documents` and
+`chunks`; this is the first product/runtime table, introduced here exactly when the
+follow-up feature requires it.**
+
+- [ ] **Test-first:** a Testcontainers integration test that runs the migration and asserts the `investigations` + `investigation_messages` tables exist with the expected columns (red)
+- [ ] Define Drizzle schema for `investigations`: `id` (pk), `ticket` input, `retrieved_chunk_ids` (array/`jsonb`), `report` (`jsonb`, nullable until generated), `created_at`
+- [ ] Define Drizzle schema for `investigation_messages`: `id` (pk), `investigation_id` (fk), `role`, `content`, `citations` (`jsonb`), `created_at` — one row per follow-up turn
+- [ ] Generate + apply the migration via `drizzle-kit` (wired through the `/migrate` command); author it with the `db-migrator` agent
+- [ ] Re-running the migration is idempotent
+
+**Acceptance criteria**
+- [ ] The migration creates both tables and applies cleanly against the dev `db` container
+- [ ] The integration test passes in CI-like isolation (Testcontainers, no API key)
+- [ ] The schema is sufficient to store an investigation and reload its full follow-up thread
+
+---
+
+### PR 4.7 — Follow-up Q&A
 
 **Objective:** Conversational exploration of causes over the same retrieved context.
 
 - [ ] **Test-first:** Supertest spec for `POST /api/investigations/:id/followup` asserting answers stay grounded in retrieved context (red)
-- [ ] Persist the investigation (ticket, retrieved chunk ids, report) so follow-ups reuse context
+- [ ] Persist each investigation and its turns using the `investigations` / `investigation_messages` schema from PR 4.6 (ticket, retrieved chunk ids, report, follow-up messages)
 - [ ] Implement a follow-up endpoint that answers questions, citing the same chunk set, and can request re-retrieval if the question shifts topic
 - [ ] Return citations with follow-up answers too
 
 **Acceptance criteria**
 - [ ] Follow-up answers reference retrieved evidence, not ungrounded model knowledge
-- [ ] Conversation state is persisted and reloadable
+- [ ] Conversation state is persisted (via the PR 4.6 schema) and reloadable
 - [ ] Endpoint is integration-tested over seeded data
 
 ---
 
-### PR 4.7 — CI gate: hermetic (no-network) LLM tests
+### PR 4.8 — CI gate: hermetic (no-network) LLM tests
 
 **Objective:** Now that the suite exercises an LLM, guarantee CI stays runnable
 without secrets or network. **This gate is meaningful only once LLM-calling code
@@ -151,6 +171,7 @@ exists — adding it earlier would have gated nothing.**
 
 - [ ] `POST /api/investigate` returns a validated, grounded, cited report
 - [ ] Citations are guaranteed to resolve to retrieved chunks
+- [ ] Investigations and their follow-up turns are persisted via a migrated schema (`investigations` / `investigation_messages`) and reloadable
 - [ ] Follow-up Q&A works and stays grounded
 - [ ] LLM calls are mockable; the suite runs green without network access
 - [ ] CI gates the LLM-dependent suite as hermetic (no key/network required); the live-API test stays opt-in
