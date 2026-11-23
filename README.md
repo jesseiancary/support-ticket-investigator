@@ -1,7 +1,10 @@
 # Support Ticket Investigator
 
+[![CI](https://github.com/jesseiancary/support-ticket-investigator/actions/workflows/ci.yml/badge.svg)](https://github.com/jesseiancary/support-ticket-investigator/actions/workflows/ci.yml)
+
 > ⚠️ Work in progress. This is a stub README — the full portfolio-facing README
 > (architecture, live demo, eval numbers, screenshots) is authored in Phase 6 (PR 6.7).
+> The CI badge above is a placeholder, finalized in Phase 6.
 
 An AI assistant that investigates customer support tickets using Retrieval-Augmented
 Generation (RAG) and produces structured, evidence-cited engineering investigation

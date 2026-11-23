@@ -206,26 +206,26 @@ package, a placeholder, exists as of PR 1.1, so it is gated from the start). Def
 until their code lands: web *component tests* and *E2E* (Phase 5), DB/integration
 (Phase 2), and LLM (Phase 4).
 
-- [ ] Add `.github/workflows/ci.yml` triggered on `push` and `pull_request`
-- [ ] Setup steps: checkout → Node 22 + pnpm via corepack → cache pnpm store → `pnpm install --frozen-lockfile`
-- [ ] **Gate:** lint (`pnpm lint`) — workspace-wide (`shared`, `api`, `web`)
-- [ ] **Gate:** typecheck (`pnpm typecheck`) — workspace-wide (`shared`, `api`, `web`)
-- [ ] **Gate:** unit tests (`pnpm test`) — the smoke/unit suite that exists today
-- [ ] **Gate:** build (`pnpm build`) — workspace-wide; all three packages (`shared`, `api`, `web`) exist as of Phase 1, so `web` is built/gated now rather than deferred
-- [ ] Add a CI status badge placeholder to `CLAUDE.md`/README (finalized in Phase 6)
-- [ ] **Gate-scope note (document in-workflow):** no Docker/integration gate here — the DB and integration tests don't exist yet (lands in Phase 2); no web *component/E2E* gate yet either — those tests arrive in Phase 5. Each gate lands exactly when the code it protects does
+- [x] Add `.github/workflows/ci.yml` triggered on `push` and `pull_request`
+- [x] Setup steps: checkout → Node 22 + pnpm via corepack → cache pnpm store → `pnpm install --frozen-lockfile`
+- [x] **Gate:** lint (`pnpm lint`) — workspace-wide (`shared`, `api`, `web`)
+- [x] **Gate:** typecheck (`pnpm typecheck`) — workspace-wide (`shared`, `api`, `web`)
+- [x] **Gate:** unit tests (`pnpm test`) — the smoke/unit suite that exists today
+- [x] **Gate:** build (`pnpm build`) — workspace-wide; all three packages (`shared`, `api`, `web`) exist as of Phase 1, so `web` is built/gated now rather than deferred
+- [x] Add a CI status badge placeholder to `CLAUDE.md`/README (finalized in Phase 6)
+- [x] **Gate-scope note (document in-workflow):** no Docker/integration gate here — the DB and integration tests don't exist yet (lands in Phase 2); no web *component/E2E* gate yet either — those tests arrive in Phase 5. Each gate lands exactly when the code it protects does
 
 **Acceptance criteria**
-- [ ] CI runs on every PR and blocks merge on lint/type/test/build failure
-- [ ] The workflow references only scripts and packages that currently exist (no gate for not-yet-built code)
-- [ ] A green run is reproducible from a fresh clone with no secrets
+- [x] CI runs on every PR and blocks merge on lint/type/test/build failure
+- [x] The workflow references only scripts and packages that currently exist (no gate for not-yet-built code)
+- [x] A green run is reproducible from a fresh clone with no secrets
 
 ---
 
 ## Definition of Done (Phase 1)
 
 - [ ] `make up && make test` is green on a fresh clone
-- [ ] GitHub Actions CI gates lint, typecheck, unit tests, and build on every PR — lint/typecheck/build run workspace-wide across `shared`/`api`/`web` (base pipeline only)
+- [x] GitHub Actions CI gates lint, typecheck, unit tests, and build on every PR — lint/typecheck/build run workspace-wide across `shared`/`api`/`web` (base pipeline only)
 - [x] `.claude/` contains settings, ≥7 commands (including `/pr-reviewer` and `/pr`), ≥4 agents, ≥4 skills, and TDD hooks
 - [x] `/pr-reviewer` reports severity-grouped findings and makes no edits; `/pr` auto-fixes Critical/High/Medium, prompts on Low, and emits copy-paste PR text — without creating a branch, staging, or committing
 - [x] `CLAUDE.md` documents the architecture, TDD loop, the git ground rule (no Claude branches/commits), and the project scope
