@@ -26,6 +26,13 @@ export default tseslint.config(
       "no-console": "off",
     },
   },
+  {
+    // Claude Code hook scripts are plain Node ESM — give them Node globals.
+    files: [".claude/hooks/**/*.mjs"],
+    languageOptions: {
+      globals: { process: "readonly", console: "readonly" },
+    },
+  },
   // Keep ESLint focused on code quality; formatting is owned by Prettier.
   prettier,
 );

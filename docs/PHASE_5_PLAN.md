@@ -107,7 +107,7 @@ React Testing Library (components), Playwright (one E2E happy path).
 
 **Objective:** Extend CI with the gates that only now have something to run: the web
 **component tests (RTL)** and the Playwright **E2E** happy path. **`web` lint,
-typecheck, and build already gate the package workspace-wide since Phase 1 (PR 1.7) —
+typecheck, and build already gate the package workspace-wide since Phase 1 (PR 1.3) —
 those are not re-added here; this phase adds only the test gates, because the web
 tests first exist now.**
 
