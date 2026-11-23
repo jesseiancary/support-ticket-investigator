@@ -1,0 +1,85 @@
+# Containerized dev stack: Postgres (pgvector) + api + web.
+# Phase 1 ships placeholder api/web health servers; real services arrive later.
+
+services:
+  db:
+    image: pgvector/pgvector:pg16
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-sti}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-sti}
+      POSTGRES_DB: ${POSTGRES_DB:-sti}
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-sti} -d ${POSTGRES_DB:-sti}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - sti
+
+  api:
+    build:
+      context: .
+      dockerfile: packages/api/Dockerfile
+    environment:
+      NODE_ENV: ${NODE_ENV:-development}
+      PORT: 3000
+      DATABASE_URL: ${DATABASE_URL:-postgres://sti:sti@db:5432/sti}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+    ports:
+      - "${API_PORT:-3000}:3000"
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://localhost:3000/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - sti
+
+  web:
+    build:
+      context: .
+      dockerfile: packages/web/Dockerfile
+    environment:
+      NODE_ENV: ${NODE_ENV:-development}
+      PORT: 5173
+    ports:
+      - "${WEB_PORT:-5173}:5173"
+    depends_on:
+      # Phase 5: the real web app calls the API at runtime — tighten this to
+      # `api: { condition: service_healthy }` once that dependency is real.
+      - api
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://localhost:5173/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - sti
+
+volumes:
+  db_data:
+
+networks:
+  sti:
+    driver: bridge

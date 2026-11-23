@@ -1,0 +1,7 @@
+node_modules/
+**/dist/
+**/coverage/
+pnpm-lock.yaml
+
+# Narrative planning docs are hand-formatted; don't let the code formatter reflow them.
+docs/

@@ -1,0 +1,5 @@
+packages:
+  - "packages/*"
+# Allow native postinstall builds only for trusted, vetted deps.
+allowBuilds:
+  esbuild: true
