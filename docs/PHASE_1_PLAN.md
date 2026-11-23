@@ -64,21 +64,23 @@ developed through the same disciplined, test-first loop.
 
 **Objective:** A containerized pnpm monorepo that boots and runs a passing smoke test.
 
-- [ ] Initialize pnpm workspace (`pnpm-workspace.yaml`) with `packages/*`
-- [ ] Create `packages/shared`, `packages/api`, `packages/web` with per-package `package.json` + `tsconfig.json`; root `tsconfig.base.json` (strict mode)
-- [ ] Add ESLint + Prettier config at the root; shared rules
-- [ ] Add Vitest at the root with workspace projects
-- [ ] **Test-first:** write `packages/shared/src/health.test.ts` asserting a trivial `health()` returns `"ok"` (red)
-- [ ] Implement `health()` to make it pass (green)
-- [ ] Author `docker-compose.yml`: `db` (`pgvector/pgvector:pg16`), `api`, `web` services with volumes + a shared network. The `web` service here is a **placeholder health-server container** (dev infra so the full stack boots), **not** the React app — that replaces it in Phase 5 (PR 5.1)
-- [ ] Add multi-stage `Dockerfile` for `api` and `web` (deps → build → runtime). The `web` Dockerfile ships a minimal placeholder now; Phase 5 converts it to a Vite build. This is infrastructure scaffolding, consistent with the "no product features" rule
-- [ ] Add a `Makefile` with `up`, `down`, `test`, `lint`, `typecheck`, `logs` targets
-- [ ] Add `.env.example` documenting `OPENAI_API_KEY`, `DATABASE_URL`, ports
+- [x] Initialize pnpm workspace (`pnpm-workspace.yaml`) with `packages/*`
+- [x] Create `packages/shared`, `packages/api`, `packages/web` (per-package `package.json`); strict TypeScript via a root `tsconfig.base.json` + a single root `tsconfig.json` (no per-package tsconfigs)
+- [x] **Build model:** `tsc` is **type-check-only** (`--noEmit`); **tsup/esbuild** bundles the apps, which enables genuinely **extensionless** relative imports. `@sti/shared` is a **source-only internal package** (`exports → ./src/index.ts`) that the apps bundle inline (`noExternal`)
+- [x] Add ESLint (flat config) + Prettier config at the root; shared rules
+- [x] Add Vitest at the root with workspace projects
+- [x] **Test-first:** write `packages/shared/src/health.test.ts` asserting a trivial `health()` returns `"ok"` (red)
+- [x] Implement `health()` to make it pass (green)
+- [x] Author `docker-compose.yml`: `db` (`pgvector/pgvector:pg16`), `api`, `web` services with volumes + a shared network. The `web` service here is a **placeholder health-server container** (dev infra so the full stack boots), **not** the React app — that replaces it in Phase 5 (PR 5.1)
+- [x] Add multi-stage `Dockerfile` for `api` and `web` (install → **tsup bundle** → runtime) that ship a **self-contained bundle** — the runtime image carries only `package.json` + `dist`, no `node_modules`. (`pnpm deploy`-based prod-dep pruning returns in Phase 2 when external deps land.) The `web` Dockerfile ships a minimal placeholder now; Phase 5 converts it to a Vite build
+- [x] Add a `Makefile` with `up`, `down`, `test`, `lint`, `typecheck`, `logs` targets (plus `build`/`format`/`clean`/`help`)
+- [x] Add `.env.example` documenting `OPENAI_API_KEY`, `DATABASE_URL`, ports
+- [x] Add a `README.md` stub with a Docker-daemon troubleshooting note (the "address pools fully subnetted" auto-allocation fix); the full portfolio README is Phase 6 (PR 6.7)
 
 **Acceptance criteria**
-- [ ] `make up` starts all three containers; `db` reports healthy
-- [ ] `make test` runs Vitest and the smoke test passes
-- [ ] `make lint` and `make typecheck` pass with zero errors
+- [x] `make up` starts all three containers; `db` reports healthy
+- [x] `make test` runs Vitest and the smoke test passes
+- [x] `make lint` and `make typecheck` pass with zero errors
 
 ---
 
