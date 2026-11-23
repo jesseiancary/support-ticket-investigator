@@ -62,7 +62,12 @@ Rules:
 - **Never write implementation before a failing test exists.** If asked to implement
   something untested, write the test first.
 - Tests live beside the code as `*.test.ts` (e.g. [`packages/shared/src/health.test.ts`](packages/shared/src/health.test.ts)).
-- Run the suite with `make test` (or `pnpm test`). `pnpm test:watch` for the inner loop.
+  DB/Testcontainers integration tests use the `*.integration.test.ts` suffix so they run
+  as a **separate Vitest project** — kept out of the fast, Docker-free default suite.
+- Run the fast unit suite with `make test` (or `pnpm test`); `pnpm test:watch` for the
+  inner loop. Integration tests (need Docker) run via `make test-integration` (or
+  `pnpm test:integration`) — these boot their own `pgvector` container and are gated in
+  CI from Phase 2 (PR 2.6).
 - Hooks enforce this mechanically (run related tests on edit; block "done" on red) — see
   "TDD-enforcing hooks" below. The discipline holds even when a hook is bypassed.
 
@@ -158,13 +163,14 @@ docker compose.
 cp .env.example .env    # fill in OPENAI_API_KEY when needed (Phase 2+)
 pnpm install
 make up                 # build + start db, api, web (all report healthy)
-make test               # Vitest across all packages
+make test               # fast unit Vitest suite (no Docker)
+make test-integration   # Testcontainers DB integration tests (needs Docker)
 make down               # stop the stack
 ```
 
-Common targets: `make up` / `make down` / `make logs` / `make test` / `make lint` /
-`make typecheck` / `make build` / `make format` / `make clean`. Run `make help` for the
-full list.
+Common targets: `make up` / `make down` / `make logs` / `make test` /
+`make test-integration` / `make lint` / `make typecheck` / `make build` / `make format` /
+`make clean`. Run `make help` for the full list.
 
 If `make up` fails with _"all predefined address pools have been fully subnetted"_, see
 the Docker-daemon troubleshooting note in [`README.md`](README.md) — it is a host/daemon
@@ -216,11 +222,11 @@ The harness mechanically enforces the test-first discipline through three hooks 
 `settings.json` and implemented as Node scripts in [`.claude/hooks/`](.claude/hooks/). They
 `fail open` — any error in a hook script exits 0, so a hook bug can never wedge a session.
 
-| Hook                                                                                | Trigger                                                                                            | Behavior                                                     | Blocks?                      |
-| ----------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- | ------------------------------------------------------------ | ---------------------------- |
-| **PreToolUse** — [`pre-edit-test-guard.mjs`](.claude/hooks/pre-edit-test-guard.mjs) | `Edit`/`Write`/`MultiEdit` of a `packages/*/src/**` source file with **no** co-located `*.test.ts` | Emits a tests-first reminder                                 | **No** (warn only)           |
-| **PostToolUse** — [`post-edit-test.mjs`](.claude/hooks/post-edit-test.mjs)          | After editing a `packages/*/src/**` TS file                                                        | Runs `vitest related` for that file; surfaces failures       | Feeds failures back (exit 2) |
-| **Stop** — [`stop-gate.mjs`](.claude/hooks/stop-gate.mjs)                           | Claude tries to finish a turn                                                                      | Runs `pnpm typecheck` + `pnpm test`; blocks "done" while red | **Yes** (exit 2 until green) |
+| Hook                                                                                | Trigger                                                                                            | Behavior                                                              | Blocks?                      |
+| ----------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------- | ---------------------------- |
+| **PreToolUse** — [`pre-edit-test-guard.mjs`](.claude/hooks/pre-edit-test-guard.mjs) | `Edit`/`Write`/`MultiEdit` of a `packages/*/src/**` source file with **no** co-located `*.test.ts` | Emits a tests-first reminder                                          | **No** (warn only)           |
+| **PostToolUse** — [`post-edit-test.mjs`](.claude/hooks/post-edit-test.mjs)          | After editing a `packages/*/src/**` TS file                                                        | Runs `vitest related --project unit` for that file; surfaces failures | Feeds failures back (exit 2) |
+| **Stop** — [`stop-gate.mjs`](.claude/hooks/stop-gate.mjs)                           | Claude tries to finish a turn                                                                      | Runs `pnpm typecheck` + `pnpm test` (unit); blocks "done" while red   | **Yes** (exit 2 until green) |
 
 The PostToolUse hook uses `--passWithNoTests`, so a brand-new source file with no test yet
 is non-blocking — the PreToolUse guard is what nudges you to write the test. The Stop gate

@@ -1,5 +1,13 @@
 packages:
   - "packages/*"
 # Allow native postinstall builds only for trusted, vetted deps.
+# esbuild (tsup/Vitest bundler) is trusted. The others are transitive test-only deps
+# pulled in by @testcontainers/postgresql — ssh2's cpu-features is an optional perf
+# shim and protobufjs ships its generated code, so none need their native build to run
+# the DB integration tests. Explicitly declining them (false) keeps pnpm from reporting
+# them as pending, which otherwise makes `pnpm exec`'s deps-status check exit non-zero.
 allowBuilds:
+  cpu-features: false
   esbuild: true
+  protobufjs: false
+  ssh2: false

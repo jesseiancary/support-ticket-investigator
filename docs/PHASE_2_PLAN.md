@@ -14,7 +14,7 @@
 
 ## Prerequisites
 
-- [ ] Phase 1 complete (monorepo, Docker, TDD harness, pgvector container)
+- [x] Phase 1 complete (monorepo, Docker, TDD harness, pgvector container)
 - [ ] `OPENAI_API_KEY` set in `.env`
 
 ## Data model (introduced here)
@@ -43,19 +43,19 @@ single definition rather than re-listing the literals.
 
 **Objective:** Create the `documents` and `chunks` tables with a pgvector column.
 
-- [ ] **Test-first:** write a Testcontainers integration test that boots `pgvector/pgvector:pg16`, runs migrations, and asserts both tables + the `vector` column exist (red)
-- [ ] Enable the `vector` extension in the first migration
-- [ ] Define the `source_type` enum values **once** in `packages/shared` as a Zod enum (`sourceType`); the Drizzle `pgEnum` is constructed from that same value list (single source of truth — no re-typed string literals in the schema)
-- [ ] Define Drizzle schema for `documents` and `chunks` (embedding `vector(1536)`, metadata `jsonb`, `source_type` enum built from the shared values above)
-- [ ] Add a **unique constraint on `documents.uri/path`** — the stable identity key that ingestion upserts against (so changed content updates in place rather than inserting a duplicate; see PR 2.5)
-- [ ] Add an index strategy note (IVFFlat/HNSW) — create the vector index in a migration
-- [ ] Wire `drizzle-kit` generate/apply into the `/migrate` command and `Makefile`
+- [x] **Test-first:** write a Testcontainers integration test that boots `pgvector/pgvector:pg16`, runs migrations, and asserts both tables + the `vector` column exist (red)
+- [x] Enable the `vector` extension in the first migration
+- [x] Define the `source_type` enum values **once** in `packages/shared` as a Zod enum (`sourceType`); the Drizzle `pgEnum` is constructed from that same value list (single source of truth — no re-typed string literals in the schema)
+- [x] Define Drizzle schema for `documents` and `chunks` (embedding `vector(1536)`, metadata `jsonb`, `source_type` enum built from the shared values above)
+- [x] Add a **unique constraint on `documents.uri/path`** — the stable identity key that ingestion upserts against (so changed content updates in place rather than inserting a duplicate; see PR 2.5)
+- [x] Add an index strategy note (IVFFlat/HNSW) — create the vector index in a migration
+- [x] Wire `drizzle-kit` generate/apply into the `/migrate` command and `Makefile`
 
 **Acceptance criteria**
-- [ ] Integration test spins up Postgres, migrates, and passes in CI-like isolation
-- [ ] `make migrate` applies cleanly against the dev `db` container
-- [ ] Re-running migrations is idempotent
-- [ ] The `source_type` values exist in exactly one place (the shared Zod enum); the Drizzle `pgEnum` references them rather than re-declaring the literals
+- [x] Integration test spins up Postgres, migrates, and passes in CI-like isolation
+- [x] `make migrate` applies cleanly against the dev `db` container
+- [x] Re-running migrations is idempotent
+- [x] The `source_type` values exist in exactly one place (the shared Zod enum); the Drizzle `pgEnum` references them rather than re-declaring the literals
 
 ---
 
@@ -140,7 +140,12 @@ migrations, and integration tests exist as of this phase — not before.**
 - [ ] Add an `integration` job (or step) to `.github/workflows/ci.yml` running the Testcontainers suite (Docker is available on GitHub-hosted runners)
 - [ ] **Gate:** migrations apply cleanly and the schema / `vector` extension assertions pass
 - [ ] **Gate:** ingestion integration test passes against the ephemeral `pgvector/pgvector:pg16` container
-- [ ] Keep unit and integration as separate jobs/steps so failures are legible
+- [ ] Keep unit and integration as separate jobs/steps so failures are legible (the
+      unit/integration Vitest split — `pnpm test` vs `pnpm test:integration` — landed with
+      PR 2.1; wire `pnpm test:integration` in as its own job here)
+- [ ] **Carry-forward from PR 2.1 review:** fix the workflow triggers while editing
+      `ci.yml` — scope `push` to the default branch (`branches: [main]`) and rely on
+      `pull_request` for PRs, so PR commits don't double-run CI (push + pull_request)
 - [ ] Ensure embeddings-dependent tests use the **fake** provider so CI needs no OpenAI key or network
 - [ ] **Gate-scope note (document in-workflow):** still no LLM/web/E2E gates — those arrive in Phases 4 and 5 when that code lands
 

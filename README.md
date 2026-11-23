@@ -22,11 +22,16 @@ reports with follow-up Q&A. See [`docs/`](docs/) for the phased implementation p
 cp .env.example .env    # fill in OPENAI_API_KEY when needed
 pnpm install
 make up                 # build + start db, api, web (all report healthy)
-make test               # run the Vitest suite
+make test               # run the unit Vitest suite (fast, no Docker)
 ```
 
-Common targets: `make up` / `make down` / `make logs` / `make test` / `make lint` /
-`make typecheck` / `make build`. Run `make help` for the full list.
+Common targets: `make up` / `make down` / `make logs` / `make test` /
+`make test-integration` / `make lint` / `make typecheck` / `make build`. Run `make help`
+for the full list.
+
+`make test` runs the fast, Docker-free unit suite. The Testcontainers DB integration
+tests run separately via `make test-integration` (needs Docker; they boot their own
+`pgvector` container).
 
 ## Troubleshooting
 

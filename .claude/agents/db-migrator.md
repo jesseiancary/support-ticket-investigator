@@ -37,10 +37,15 @@ literals in the schema. If a change touches `source_type`, edit the shared enum 
    runs migrations, and asserts the new schema state (tables/columns/constraints/indexes,
    `vector` extension). Run it; confirm it fails against the current schema.
 2. **Edit the Drizzle schema** to express the change.
-3. **Generate:** `pnpm drizzle-kit generate`. Review the SQL — correct, minimal, enables
-   needed extensions, and **idempotent / re-runnable**.
-4. **Apply + GREEN:** `make migrate` against the dev `db` container, then re-run the test
-   to green. Confirm re-running migrations is a no-op.
+3. **Generate:** `make generate` (→ `drizzle-kit generate`). Review the SQL — correct and
+   minimal. drizzle-kit does not emit `CREATE EXTENSION`; hand-add
+   `CREATE EXTENSION IF NOT EXISTS vector;` first when a change first needs `vector`. Any
+   **hand-added** statement must be safe to re-apply (`IF NOT EXISTS`); generated DDL is
+   applied once and need not be.
+4. **Apply + GREEN:** `make migrate` against the dev `db` container, then re-run the
+   integration test (`make test-integration`) to green. "No-op on re-run" means the
+   **migrator** skips journaled migrations (`__drizzle_migrations`) — not raw-SQL
+   re-runnability.
 5. Run `pnpm lint` and `pnpm typecheck`.
 
 Never run `pnpm deploy` by hand (Docker-build-only; see `CLAUDE.md`). Never perform git
