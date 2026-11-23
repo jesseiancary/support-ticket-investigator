@@ -25,12 +25,14 @@ React Testing Library (components), Playwright (one E2E happy path).
 
 - [ ] **Test-first:** a component test rendering the shell + a smoke test for the API client parsing a mocked response via shared schemas (red)
 - [ ] Scaffold Vite + React + TS + Tailwind in `packages/web`
-- [ ] Build a typed API client whose request/response types come from `packages/shared` Zod schemas (parse/validate responses)
+- [ ] Build a typed API client whose request/response types come from `packages/shared` Zod schemas (parse/validate responses); its base URL comes from a build-time `VITE_API_URL`, defaulting to the dev proxy / same origin
 - [ ] Set up TanStack Query provider + base layout/navigation
-- [ ] **Replace the Phase 1 placeholder `web` container with the real Vite build:** update the existing `web` multi-stage Dockerfile and its `docker-compose.yml` service (the placeholder health-server is swapped out here, not created) — dev proxy to `api`
+- [ ] **Replace the Phase 1 placeholder `web` container with the real Vite build:** update the existing `web` multi-stage Dockerfile — the build stage runs `vite build`, and the runtime stage serves the static `dist/` from **`nginx:alpine`** with an `nginx.conf` providing **SPA history fallback** (unknown routes → `index.html`). In dev, use the Vite dev server proxying `/api` to the `api` service in the compose network. Rewire the `docker-compose.yml` `web` service accordingly (placeholder swapped out, not created)
 
 **Acceptance criteria**
-- [ ] `make up` serves the web app; it reaches the API in the compose network
+- [ ] `make up` serves the web app; it reaches the API in the compose network (dev proxy)
+- [ ] The production web image serves the built SPA via `nginx` with working SPA history fallback
+- [ ] The API client's base URL is configurable via `VITE_API_URL` (no hard-coded host)
 - [ ] API responses are validated against shared schemas client-side
 - [ ] Shell renders and the smoke tests pass
 

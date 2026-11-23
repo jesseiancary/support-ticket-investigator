@@ -120,10 +120,12 @@ current. **Extends the Phase 5 Playwright setup (PRs 5.5–5.6); does not introd
 **Objective:** A public, running demo.
 
 - [ ] Provision a Railway project with a PostgreSQL database and enable `pgvector`
-- [ ] Deploy the `api` and `web` services (from the existing Dockerfiles)
+- [ ] Deploy two services from their Dockerfiles: **`api`** (Node bundle) and **`web`** (static SPA served by `nginx`)
+- [ ] Set **`VITE_API_URL`** to the `api` service's public URL as a **build-time** variable for the `web` image (the browser SPA calls the api's public URL — it is not on Railway's private network)
+- [ ] Enable **CORS** on the `api` for the `web` service's public origin (web and api are separate domains, so requests are cross-origin)
 - [ ] Configure env/secrets (`OPENAI_API_KEY`, `DATABASE_URL`) in Railway, not in git
 - [ ] Run migrations and seed the production corpus as a release/one-off step
-- [ ] Smoke-test the deployed `/api/retrieve` and `/api/investigate`
+- [ ] Smoke-test the deployed `/api/retrieve` and `/api/investigate`, and the `web` URL end-to-end
 - [ ] Document the deploy steps (and note alternatives: Fly.io, Render + Neon)
 
 **Acceptance criteria**
