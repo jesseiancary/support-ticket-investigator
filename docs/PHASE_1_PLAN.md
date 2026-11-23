@@ -26,6 +26,15 @@ developed through the same disciplined, test-first loop.
 - **Git is human-owned. Claude never creates branches, stages, commits, or pushes.**
   The `/pr` command (PR 1.3) only emits copy-paste PR text; the human performs all git
   operations. The permission allowlist must not include `git add`/`commit`/`branch`/`push`.
+- **Shared types have one home and one definition.** Every type that crosses a package
+  boundary — API request/response shapes, domain enums (e.g. `source_type`), and the
+  `ParsedDocument` / retrieval-result / `InvestigationReport` contracts — is defined
+  **once** in `packages/shared` as a Zod schema, with TypeScript types **inferred** from
+  it (`z.infer`), never hand-redeclared. The `api` and `web` packages import these; they
+  never re-define a shared shape locally. Where a shared value must also exist in another
+  system (notably the Drizzle `source_type` `pgEnum`), it is **derived from the shared
+  Zod enum's value list**, so there is exactly one authoritative definition and no
+  possibility of drift.
 - **If time-constrained, these are safe to trim** to hit the week budget: the
   blocking happy-path Playwright E2E gate (Phase 5, PRs 5.5–5.6) and the depth of
   answer-quality eval (Phase 6, PR 6.2). Keep the retrieval eval, the hermetic test

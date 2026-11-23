@@ -70,7 +70,7 @@ Every `evidence.citation` **must** reference a chunk that was actually retrieved
 
 **Objective:** Produce a schema-valid report via structured output + validation.
 
-- [ ] Define the `InvestigationReport` Zod schema in `packages/shared` (matches the contract above)
+- [ ] Define the `InvestigationReport` Zod schema in `packages/shared` (matches the contract above); its `evidence[].citation` reuses the shared `sourceType` enum and the same chunk-identity fields (`chunkId`, `documentTitle`) as the Phase 3 retrieval-result schema — it does not redefine them
 - [ ] **Test-first:** tests feeding a canned model response through validation, including one malformed response that triggers repair/retry (red)
 - [ ] Request JSON structured output from the model constrained to the schema
 - [ ] Validate with Zod; on failure, run one bounded repair attempt, then fail cleanly

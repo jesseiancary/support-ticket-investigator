@@ -33,6 +33,9 @@ created_at            token_count
 ```
 
 `source_type ∈ { technical_doc, historical_ticket, troubleshooting_guide, app_log }`
+— these values are defined **once** in `packages/shared` as a Zod enum (see PR 2.1/2.2);
+everything else (the Drizzle `pgEnum`, parsers, retrieval filters, citations) reuses that
+single definition rather than re-listing the literals.
 
 ---
 
@@ -42,7 +45,8 @@ created_at            token_count
 
 - [ ] **Test-first:** write a Testcontainers integration test that boots `pgvector/pgvector:pg16`, runs migrations, and asserts both tables + the `vector` column exist (red)
 - [ ] Enable the `vector` extension in the first migration
-- [ ] Define Drizzle schema for `documents` and `chunks` (embedding `vector(1536)`, metadata `jsonb`, `source_type` enum)
+- [ ] Define the `source_type` enum values **once** in `packages/shared` as a Zod enum (`sourceType`); the Drizzle `pgEnum` is constructed from that same value list (single source of truth — no re-typed string literals in the schema)
+- [ ] Define Drizzle schema for `documents` and `chunks` (embedding `vector(1536)`, metadata `jsonb`, `source_type` enum built from the shared values above)
 - [ ] Add a **unique constraint on `documents.uri/path`** — the stable identity key that ingestion upserts against (so changed content updates in place rather than inserting a duplicate; see PR 2.5)
 - [ ] Add an index strategy note (IVFFlat/HNSW) — create the vector index in a migration
 - [ ] Wire `drizzle-kit` generate/apply into the `/migrate` command and `Makefile`
@@ -51,6 +55,7 @@ created_at            token_count
 - [ ] Integration test spins up Postgres, migrates, and passes in CI-like isolation
 - [ ] `make migrate` applies cleanly against the dev `db` container
 - [ ] Re-running migrations is idempotent
+- [ ] The `source_type` values exist in exactly one place (the shared Zod enum); the Drizzle `pgEnum` references them rather than re-declaring the literals
 
 ---
 
@@ -58,7 +63,7 @@ created_at            token_count
 
 **Objective:** Normalize each input format into a common `ParsedDocument` record.
 
-- [ ] Define `ParsedDocument` Zod schema in `packages/shared`
+- [ ] Define `ParsedDocument` Zod schema in `packages/shared`, reusing the shared `sourceType` enum (do not re-list its values)
 - [ ] **Test-first:** unit tests with fixtures for each parser (red)
 - [ ] Markdown parser (strip formatting, keep headings as metadata)
 - [ ] JSON parser for historical tickets (map fields → content + metadata, including resolution)
