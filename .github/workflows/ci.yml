@@ -1,0 +1,59 @@
+name: CI
+
+# Base CI pipeline — gates every push and PR from Phase 1 onward.
+#
+# Gate scope (see docs/PHASE_1_PLAN.md, PR 1.3): only code that exists *now*.
+# Lint / typecheck / build run workspace-wide across all three packages that
+# exist today — `shared`, `api`, and `web` (the `web` placeholder ships in
+# PR 1.1, so it is gated from the start). Deferred until their code lands, each
+# gate arriving exactly when the code it protects does:
+#   - Docker / DB integration tests  -> Phase 2
+#   - LLM / answer-quality evals      -> Phase 4
+#   - web component tests & E2E       -> Phase 5
+# A green run is reproducible from a fresh clone with no secrets.
+
+on:
+  push:
+  pull_request:
+
+# Cancel superseded runs on the same ref so PR pushes don't pile up.
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  gate:
+    name: lint / typecheck / test / build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # Activate the repo-pinned pnpm (package.json `packageManager`) before
+      # setup-node, which needs pnpm on PATH to resolve its store cache.
+      - name: Enable corepack
+        run: corepack enable
+
+      - name: Setup Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      - name: Test
+        run: pnpm test
+
+      - name: Build
+        run: pnpm build

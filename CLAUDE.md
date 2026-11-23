@@ -1,6 +1,13 @@
 # CLAUDE.md
 
+[![CI](https://github.com/jesseiancary/support-ticket-investigator/actions/workflows/ci.yml/badge.svg)](https://github.com/jesseiancary/support-ticket-investigator/actions/workflows/ci.yml)
+
 Guidance for Claude Code (and humans) working in this repository. Read this first.
+
+> CI badge above is a placeholder (finalized in Phase 6). The base GitHub Actions
+> pipeline ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)) gates every push
+> and PR on lint + typecheck + unit tests + build, workspace-wide across `shared`,
+> `api`, and `web`.
 
 ## What this project is
 
