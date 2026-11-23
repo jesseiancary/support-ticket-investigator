@@ -42,7 +42,7 @@
 - [ ] **Test-first:** tests asserting a `source_type` filter excludes other types, and product filters scope correctly (red)
 - [ ] Add optional filter params (source types, product) to the retrieval function
 - [ ] Combine the metadata predicate with the vector ordering in one query
-- [ ] Validate filter inputs with Zod; reject unknown `source_type` values
+- [ ] Validate filter inputs with Zod against the shared `sourceType` enum; reject unknown `source_type` values (no locally re-declared list)
 
 **Acceptance criteria**
 - [ ] Filtering by `source_type` returns only matching chunks
@@ -56,12 +56,12 @@
 **Objective:** Produce a clean, stable, UI-ready result set.
 
 - [ ] **Test-first:** tests asserting deterministic ordering and the result shape (red)
-- [ ] Shape each result: `{ chunkId, documentTitle, sourceType, snippet, similarity, rank }`
+- [ ] Shape each result: `{ chunkId, documentTitle, sourceType, snippet, similarity, rank }` (`sourceType` is the shared `sourceType` enum, not a new string type)
 - [ ] Assign `rank` (1..k) after ordering; ensure ties break deterministically
 - [ ] Truncate/format `snippet` for display without losing the full content reference
 
 **Acceptance criteria**
-- [ ] Result shape matches a shared Zod schema reused by the API and web app
+- [ ] The result shape is a Zod schema defined in `packages/shared` (e.g. `RetrievedChunk`), inferred into TS types and reused verbatim by the API and web app — not re-declared in either
 - [ ] Ordering is stable across repeated identical queries
 - [ ] `rank` and `similarity` are both present and consistent
 
@@ -90,7 +90,7 @@
 - [ ] **Test-first:** Supertest spec asserting `POST /api/retrieve` returns ranked chunks with source/score/rank (red)
 - [ ] Implement an Express route that runs the retrieval pipeline and returns the shaped results **without** calling the LLM
 - [ ] Include the query echo and the effective config (topK, threshold, filters) in the response for transparency
-- [ ] Reuse shared Zod schemas for request/response
+- [ ] Define the `POST /api/retrieve` request/response Zod schemas in `packages/shared` and reuse them on both the server (validation) and the Phase 5 web client — one definition, no API/UI drift
 - [ ] Document the endpoint (this is the feature reviewers will click first)
 
 **Acceptance criteria**

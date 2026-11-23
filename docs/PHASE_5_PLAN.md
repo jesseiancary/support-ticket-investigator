@@ -10,7 +10,7 @@
 ## Prerequisites
 
 - [ ] Phase 3 (`POST /api/retrieve`) and Phase 4 (`/api/investigate`, follow-up) complete
-- [ ] Shared Zod schemas in `packages/shared` are the single source of truth for API types
+- [ ] Shared Zod schemas in `packages/shared` are the single source of truth for all cross-package types (API request/response shapes, the `sourceType` enum, retrieval-result and report contracts) — per the Phase 1 ground rule; the web app infers its types from them and never re-declares a shape
 
 ## Stack
 
