@@ -1,25 +1,25 @@
-import { fileURLToPath } from "node:url";
-import { dirname, resolve } from "node:path";
+import { fileURLToPath } from 'node:url';
+import { dirname, resolve } from 'node:path';
 
-import { PostgreSqlContainer, type StartedPostgreSqlContainer } from "@testcontainers/postgresql";
-import { drizzle, type NodePgDatabase } from "drizzle-orm/node-postgres";
-import { migrate } from "drizzle-orm/node-postgres/migrator";
-import { Pool } from "pg";
-import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { PostgreSqlContainer, type StartedPostgreSqlContainer } from '@testcontainers/postgresql';
+import { drizzle, type NodePgDatabase } from 'drizzle-orm/node-postgres';
+import { migrate } from 'drizzle-orm/node-postgres/migrator';
+import { Pool } from 'pg';
+import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
 // Migrations live at packages/api/drizzle; this test sits at packages/api/src/db.
-const migrationsFolder = resolve(dirname(fileURLToPath(import.meta.url)), "../../drizzle");
+const migrationsFolder = resolve(dirname(fileURLToPath(import.meta.url)), '../../drizzle');
 
 // Testcontainers pulls/boots a real Postgres; give it room on a cold cache.
 const BOOT_TIMEOUT_MS = 120_000;
 
-describe("database schema (migrations against pgvector/pgvector:pg16)", () => {
+describe('database schema (migrations against pgvector/pgvector:pg16)', () => {
   let container: StartedPostgreSqlContainer;
   let pool: Pool;
   let db: NodePgDatabase;
 
   beforeAll(async () => {
-    container = await new PostgreSqlContainer("pgvector/pgvector:pg16").start();
+    container = await new PostgreSqlContainer('pgvector/pgvector:pg16').start();
     pool = new Pool({ connectionString: container.getConnectionUri() });
     db = drizzle(pool);
     await migrate(db, { migrationsFolder });
@@ -30,12 +30,12 @@ describe("database schema (migrations against pgvector/pgvector:pg16)", () => {
     await container?.stop();
   });
 
-  it("enables the vector extension", async () => {
+  it('enables the vector extension', async () => {
     const { rows } = await pool.query(`SELECT 1 FROM pg_extension WHERE extname = 'vector'`);
     expect(rows).toHaveLength(1);
   });
 
-  it("creates the source_type enum with exactly the shared values", async () => {
+  it('creates the source_type enum with exactly the shared values', async () => {
     const { rows } = await pool.query<{ value: string }>(
       `SELECT e.enumlabel AS value
          FROM pg_type t
@@ -44,14 +44,14 @@ describe("database schema (migrations against pgvector/pgvector:pg16)", () => {
         ORDER BY e.enumsortorder`,
     );
     expect(rows.map((r) => r.value)).toEqual([
-      "technical_doc",
-      "historical_ticket",
-      "troubleshooting_guide",
-      "app_log",
+      'technical_doc',
+      'historical_ticket',
+      'troubleshooting_guide',
+      'app_log',
     ]);
   });
 
-  it("creates the documents table", async () => {
+  it('creates the documents table', async () => {
     const { rows } = await pool.query(
       `SELECT 1 FROM information_schema.tables
         WHERE table_schema = 'public' AND table_name = 'documents'`,
@@ -59,7 +59,7 @@ describe("database schema (migrations against pgvector/pgvector:pg16)", () => {
     expect(rows).toHaveLength(1);
   });
 
-  it("creates the chunks table with a vector(1536) embedding column", async () => {
+  it('creates the chunks table with a vector(1536) embedding column', async () => {
     const { rows } = await pool.query<{ udt_name: string; dims: number | null }>(
       `SELECT c.udt_name, a.atttypmod AS dims
          FROM information_schema.columns c
@@ -70,12 +70,12 @@ describe("database schema (migrations against pgvector/pgvector:pg16)", () => {
           AND c.column_name = 'embedding'`,
     );
     expect(rows).toHaveLength(1);
-    expect(rows[0]?.udt_name).toBe("vector");
+    expect(rows[0]?.udt_name).toBe('vector');
     // pgvector stores the dimension count directly in atttypmod (no +4 header).
     expect(rows[0]?.dims).toBe(1536);
   });
 
-  it("enforces a unique constraint on documents.uri (the upsert identity key)", async () => {
+  it('enforces a unique constraint on documents.uri (the upsert identity key)', async () => {
     const { rows } = await pool.query(
       `SELECT 1
          FROM pg_constraint con
@@ -89,7 +89,7 @@ describe("database schema (migrations against pgvector/pgvector:pg16)", () => {
     expect(rows).toHaveLength(1);
   });
 
-  it("creates a vector similarity index on chunks.embedding", async () => {
+  it('creates a vector similarity index on chunks.embedding', async () => {
     const { rows } = await pool.query<{ indexdef: string }>(
       `SELECT indexdef FROM pg_indexes
         WHERE schemaname = 'public' AND tablename = 'chunks' AND indexdef ILIKE '%USING hnsw%'`,
@@ -99,7 +99,7 @@ describe("database schema (migrations against pgvector/pgvector:pg16)", () => {
     expect(rows[0]?.indexdef).toMatch(/vector_cosine_ops/);
   });
 
-  it("re-running the migrator is a journal-tracked no-op", async () => {
+  it('re-running the migrator is a journal-tracked no-op', async () => {
     // Drizzle records applied migrations in __drizzle_migrations and skips them on re-run,
     // so this asserts the *migrator's* idempotency (the acceptance criterion), not that the
     // raw DDL is independently re-runnable — which drizzle's journal model does not require.

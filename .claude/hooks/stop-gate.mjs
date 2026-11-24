@@ -12,44 +12,44 @@
 //   0 → allow the stop
 //   2 → block the stop; stderr is shown to Claude as the reason to keep working
 
-import { execSync } from "node:child_process";
-import { readFileSync } from "node:fs";
+import { execSync } from 'node:child_process';
+import { readFileSync } from 'node:fs';
 
 const projectDir = process.env.CLAUDE_PROJECT_DIR || process.cwd();
 
 function readStdin() {
   try {
-    return readFileSync(0, "utf8");
+    return readFileSync(0, 'utf8');
   } catch {
-    return "";
+    return '';
   }
 }
 
 function run(cmd) {
   try {
-    execSync(cmd, { cwd: projectDir, stdio: "pipe", encoding: "utf8" });
-    return { ok: true, out: "" };
+    execSync(cmd, { cwd: projectDir, stdio: 'pipe', encoding: 'utf8' });
+    return { ok: true, out: '' };
   } catch (err) {
-    return { ok: false, out: `${err.stdout || ""}${err.stderr || ""}`.trim() };
+    return { ok: false, out: `${err.stdout || ''}${err.stderr || ''}`.trim() };
   }
 }
 
 try {
-  const input = JSON.parse(readStdin() || "{}");
+  const input = JSON.parse(readStdin() || '{}');
   if (input?.stop_hook_active) process.exit(0); // already gating — don't loop
 
   const failures = [];
 
-  const typecheck = run("pnpm typecheck");
+  const typecheck = run('pnpm typecheck');
   if (!typecheck.ok) failures.push(`# typecheck failed\n${typecheck.out}`);
 
-  const test = run("pnpm test");
+  const test = run('pnpm test');
   if (!test.ok) failures.push(`# tests failed\n${test.out}`);
 
   if (failures.length > 0) {
     process.stderr.write(
       `Stop blocked: the TDD gate is red. Fix these before finishing:\n\n` +
-        `${failures.join("\n\n")}\n`,
+        `${failures.join('\n\n')}\n`,
     );
     process.exit(2);
   }

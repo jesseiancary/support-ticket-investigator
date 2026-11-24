@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from 'zod';
 
 /**
  * The kinds of knowledge sources the investigator ingests and retrieves over.
@@ -11,10 +11,10 @@ import { z } from "zod";
  * Values are `snake_case` per the project's domain-enum convention.
  */
 export const sourceType = z.enum([
-  "technical_doc",
-  "historical_ticket",
-  "troubleshooting_guide",
-  "app_log",
+  'technical_doc',
+  'historical_ticket',
+  'troubleshooting_guide',
+  'app_log',
 ]);
 
 export type SourceType = z.infer<typeof sourceType>;

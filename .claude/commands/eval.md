@@ -1,6 +1,6 @@
 ---
 description: Run the RAG evaluation harness and print retrieval / answer-quality metrics
-argument-hint: "[retrieval|answer|all] (default: all)"
+argument-hint: '[retrieval|answer|all] (default: all)'
 ---
 
 Run the project's RAG evaluation harness and report the metrics. Scope: `$ARGUMENTS`
