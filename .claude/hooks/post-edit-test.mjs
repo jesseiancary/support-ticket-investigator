@@ -39,7 +39,10 @@ try {
   // `vitest related` runs the tests that import the changed file (and, for a changed
   // test file, that test itself). --passWithNoTests keeps brand-new, not-yet-tested
   // source non-blocking — the PreToolUse guard is what nudges about a missing test.
-  const cmd = `pnpm exec vitest related --run --passWithNoTests "${rel}"`;
+  //
+  // Scoped to the `unit` project so the routine edit loop stays Docker-free: integration
+  // tests (`*.integration.test.ts`, Testcontainers) run only via `pnpm test:integration`.
+  const cmd = `pnpm exec vitest related --run --passWithNoTests --project unit "${rel}"`;
 
   try {
     execSync(cmd, { cwd: projectDir, stdio: "pipe", encoding: "utf8" });

@@ -2,7 +2,7 @@
 # Host commands (test/lint/typecheck) run via pnpm; stack commands via docker compose.
 
 .DEFAULT_GOAL := help
-.PHONY: help install up down logs test lint typecheck format build clean
+.PHONY: help install up down logs test test-integration lint typecheck format build clean generate migrate
 
 help: ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) \
@@ -20,8 +20,23 @@ down: ## Stop the stack and remove containers
 logs: ## Tail logs from all services
 	docker compose logs -f
 
-test: ## Run the Vitest suite across all packages
+generate: ## Generate a Drizzle migration from schema changes (no DB needed)
+	pnpm --filter @sti/api run db:generate
+
+migrate: ## Apply Drizzle migrations to the dev db container (host → localhost:DB_PORT)
+	# Make does not auto-load .env the way docker compose does, so source it here (if
+	# present) and build a localhost URL from DB_PORT/POSTGRES_* — never .env's
+	# DATABASE_URL, which uses the compose-internal host `db` (unreachable from the host).
+	# Assumes simple KEY=VALUE lines, the same assumption docker compose makes.
+	@set -a; [ -f .env ] && . ./.env; set +a; \
+	DATABASE_URL="postgres://$${POSTGRES_USER:-sti}:$${POSTGRES_PASSWORD:-sti}@localhost:$${DB_PORT:-5432}/$${POSTGRES_DB:-sti}" \
+		pnpm --filter @sti/api run db:migrate
+
+test: ## Run the unit Vitest suite (fast, no Docker)
 	pnpm test
+
+test-integration: ## Run the Testcontainers DB integration tests (requires Docker)
+	pnpm test:integration
 
 lint: ## Lint all packages with ESLint
 	pnpm lint

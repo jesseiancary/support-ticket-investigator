@@ -3,5 +3,8 @@ node_modules/
 **/coverage/
 pnpm-lock.yaml
 
+# Drizzle-generated migrations + meta snapshots — owned by drizzle-kit, not the formatter.
+**/drizzle/
+
 # Narrative planning docs are hand-formatted; don't let the code formatter reflow them.
 docs/
