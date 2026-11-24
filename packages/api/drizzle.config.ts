@@ -1,4 +1,4 @@
-import { defineConfig } from "drizzle-kit";
+import { defineConfig } from 'drizzle-kit';
 
 /**
  * drizzle-kit configuration for the api package.
@@ -12,14 +12,14 @@ import { defineConfig } from "drizzle-kit";
  * dev setup.
  */
 export default defineConfig({
-  schema: "./src/db/schema.ts",
-  out: "./drizzle",
-  dialect: "postgresql",
+  schema: './src/db/schema.ts',
+  out: './drizzle',
+  dialect: 'postgresql',
   dbCredentials: {
     // Prefer an explicit DATABASE_URL (what `make migrate` sets, honoring DB_PORT). The
     // fallback assumes the default dev setup on port 5432 — a bare `drizzle-kit migrate`
     // run outside `make migrate` with a custom DB_PORT should pass DATABASE_URL itself.
-    url: process.env.DATABASE_URL ?? "postgres://sti:sti@localhost:5432/sti",
+    url: process.env.DATABASE_URL ?? 'postgres://sti:sti@localhost:5432/sti',
   },
   // `strict` / `verbose` only affect `drizzle-kit push` (an interactive diff + confirm).
   // This project never uses push — it generates + applies versioned migrations — so these

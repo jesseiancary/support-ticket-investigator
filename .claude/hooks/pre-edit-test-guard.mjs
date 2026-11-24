@@ -8,17 +8,17 @@
 // Non-blocking by contract: we exit 0 and surface the warning via JSON
 // `permissionDecision: "allow"` with a reason, so the edit proceeds either way.
 
-import { existsSync } from "node:fs";
-import { readFileSync } from "node:fs";
-import { relative, isAbsolute } from "node:path";
+import { existsSync } from 'node:fs';
+import { readFileSync } from 'node:fs';
+import { relative, isAbsolute } from 'node:path';
 
 const projectDir = process.env.CLAUDE_PROJECT_DIR || process.cwd();
 
 function readStdin() {
   try {
-    return readFileSync(0, "utf8");
+    return readFileSync(0, 'utf8');
   } catch {
-    return "";
+    return '';
   }
 }
 
@@ -27,8 +27,8 @@ function allow(reason) {
     process.stdout.write(
       JSON.stringify({
         hookSpecificOutput: {
-          hookEventName: "PreToolUse",
-          permissionDecision: "allow",
+          hookEventName: 'PreToolUse',
+          permissionDecision: 'allow',
           permissionDecisionReason: reason,
         },
       }),
@@ -38,7 +38,7 @@ function allow(reason) {
 }
 
 try {
-  const input = JSON.parse(readStdin() || "{}");
+  const input = JSON.parse(readStdin() || '{}');
   const filePath = input?.tool_input?.file_path;
   if (!filePath) allow();
 
@@ -49,7 +49,7 @@ try {
   const isTest = /\.test\.(ts|tsx)$/.test(rel);
   if (!isSrc || isTest) allow();
 
-  const testSibling = filePath.replace(/\.(ts|tsx)$/, ".test.$1");
+  const testSibling = filePath.replace(/\.(ts|tsx)$/, '.test.$1');
   if (existsSync(testSibling)) allow();
 
   allow(

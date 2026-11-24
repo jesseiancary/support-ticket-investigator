@@ -12,22 +12,22 @@
 //   0  → silent / informational (success, or nothing to run)
 //   2  → feed stderr back to Claude (related tests failed — act on it)
 
-import { execSync } from "node:child_process";
-import { readFileSync } from "node:fs";
-import { relative, isAbsolute } from "node:path";
+import { execSync } from 'node:child_process';
+import { readFileSync } from 'node:fs';
+import { relative, isAbsolute } from 'node:path';
 
 const projectDir = process.env.CLAUDE_PROJECT_DIR || process.cwd();
 
 function readStdin() {
   try {
-    return readFileSync(0, "utf8");
+    return readFileSync(0, 'utf8');
   } catch {
-    return "";
+    return '';
   }
 }
 
 try {
-  const input = JSON.parse(readStdin() || "{}");
+  const input = JSON.parse(readStdin() || '{}');
   const filePath = input?.tool_input?.file_path;
   if (!filePath) process.exit(0);
 
@@ -45,10 +45,10 @@ try {
   const cmd = `pnpm exec vitest related --run --passWithNoTests --project unit "${rel}"`;
 
   try {
-    execSync(cmd, { cwd: projectDir, stdio: "pipe", encoding: "utf8" });
+    execSync(cmd, { cwd: projectDir, stdio: 'pipe', encoding: 'utf8' });
     process.exit(0); // related tests passed (or none exist yet)
   } catch (err) {
-    const out = `${err.stdout || ""}${err.stderr || ""}`.trim();
+    const out = `${err.stdout || ''}${err.stderr || ''}`.trim();
     process.stderr.write(
       `TDD hook: related tests are RED after editing ${rel}.\n` +
         `Make them green before moving on (or write the missing test).\n\n` +

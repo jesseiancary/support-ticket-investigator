@@ -1,6 +1,6 @@
-import { createServer } from "node:http";
+import { createServer } from 'node:http';
 
-import { health } from "@sti/shared";
+import { health } from '@sti/shared';
 
 /**
  * Placeholder entrypoint. The real Express server, routes, and RAG pipeline are
@@ -10,13 +10,13 @@ import { health } from "@sti/shared";
 const PORT = Number(process.env.PORT) || 3000;
 
 const server = createServer((req, res) => {
-  if (req.url === "/health") {
-    res.writeHead(200, { "content-type": "application/json" });
-    res.end(JSON.stringify({ status: health(), service: "api" }));
+  if (req.url === '/health') {
+    res.writeHead(200, { 'content-type': 'application/json' });
+    res.end(JSON.stringify({ status: health(), service: 'api' }));
     return;
   }
-  res.writeHead(404, { "content-type": "application/json" });
-  res.end(JSON.stringify({ error: "not_found" }));
+  res.writeHead(404, { 'content-type': 'application/json' });
+  res.end(JSON.stringify({ error: 'not_found' }));
 });
 
 server.listen(PORT, () => {

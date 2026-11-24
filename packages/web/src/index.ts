@@ -1,6 +1,6 @@
-import { createServer } from "node:http";
+import { createServer } from 'node:http';
 
-import { health } from "@sti/shared";
+import { health } from '@sti/shared';
 
 /**
  * Placeholder entrypoint. The real React app (Vite + Tailwind + TanStack Query) is
@@ -10,19 +10,19 @@ import { health } from "@sti/shared";
 const PORT = Number(process.env.PORT) || 5173;
 
 const server = createServer((req, res) => {
-  if (req.url === "/health") {
-    res.writeHead(200, { "content-type": "application/json" });
-    res.end(JSON.stringify({ status: health(), service: "web" }));
+  if (req.url === '/health') {
+    res.writeHead(200, { 'content-type': 'application/json' });
+    res.end(JSON.stringify({ status: health(), service: 'web' }));
     return;
   }
-  if (req.url === "/") {
-    res.writeHead(200, { "content-type": "text/plain" });
-    res.end("support-ticket-investigator web (placeholder — UI arrives in Phase 5)\n");
+  if (req.url === '/') {
+    res.writeHead(200, { 'content-type': 'text/plain' });
+    res.end('support-ticket-investigator web (placeholder — UI arrives in Phase 5)\n');
     return;
   }
   // Unknown paths mirror the api placeholder's 404 JSON shape for consistency.
-  res.writeHead(404, { "content-type": "application/json" });
-  res.end(JSON.stringify({ error: "not_found" }));
+  res.writeHead(404, { 'content-type': 'application/json' });
+  res.end(JSON.stringify({ error: 'not_found' }));
 });
 
 server.listen(PORT, () => {
